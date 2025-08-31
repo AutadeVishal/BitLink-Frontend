@@ -1,108 +1,10 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import axios from 'axios';
-const VITE_BASE_URL=import.meta.env.VITE_BASE_URL;
+const VITE_BASE_URL = import.meta.env.VITE_BASE_URL;
 import { setUser } from '../../utils/userSlice';
 import FeedCard from '../FeedCard';
-
-const TECHNICAL_SKILLS = [
-  'JavaScript', 'Python', 'Java', 'C++', 'C#', 'PHP', 'Ruby', 'Go', 'Rust', 'Swift','Flask','Django',
-  'Kotlin', 'TypeScript', 'Dart', 'Scala', 'R', 'MATLAB', 'Perl', 'Shell Scripting', 'PowerShell', 'Bash',
-  'React.js', 'Angular', 'Vue.js', 'Node.js', 'Express.js', 'Next.js', 'Nuxt.js', 'Svelte', 'Ember.js', 'Backbone.js',
-  'HTML5', 'CSS3', 'SASS', 'LESS', 'Bootstrap', 'Tailwind CSS', 'Material-UI', 'Chakra UI', 'Ant Design', 'Semantic UI',
-  'MongoDB', 'MySQL', 'PostgreSQL', 'SQLite', 'Oracle', 'SQL Server', 'Redis', 'Cassandra', 'DynamoDB', 'Firebase',
-  'Docker', 'Kubernetes', 'Jenkins', 'GitLab CI', 'GitHub Actions', 'Travis CI', 'CircleCI', 'Ansible', 'Terraform', 'Vagrant',
-  'AWS', 'Azure', 'Google Cloud', 'Heroku', 'DigitalOcean', 'Netlify', 'Vercel', 'CloudFlare', 'Firebase Hosting', 'Railway',
-  'Git', 'SVN', 'Mercurial', 'GitHub', 'GitLab', 'Bitbucket', 'SourceForge', 'Azure DevOps', 'Jira', 'Confluence',
-  'Machine Learning', 'Deep Learning', 'TensorFlow', 'PyTorch', 'Scikit-learn', 'Keras', 'OpenCV', 'NLP', 'Computer Vision', 'Data Science',
-  'Cybersecurity', 'Penetration Testing', 'Ethical Hacking', 'Kali Linux', 'Metasploit', 'Burp Suite', 'Wireshark', 'Nmap', 'OWASP', 'Cryptography',
-  'Linux', 'Ubuntu', 'CentOS', 'Red Hat', 'Debian', 'Windows Server', 'macOS', 'Unix', 'FreeBSD', 'Arch Linux',
-  'Apache', 'Nginx', 'IIS', 'Tomcat', 'JBoss', 'WebLogic', 'Load Balancing', 'CDN', 'SSL/TLS', 'DNS',
-  'Microservices', 'REST API', 'GraphQL', 'SOAP', 'gRPC', 'WebSockets', 'OAuth', 'JWT', 'API Gateway', 'Swagger',
-  'Agile', 'Scrum', 'Kanban', 'DevOps', 'CI/CD', 'Test-Driven Development', 'Unit Testing', 'Integration Testing', 'E2E Testing', 'Performance Testing'
-];
-
-const SkillsSelector = ({ selectedSkills, onSkillsChange }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
-
-  const filteredSkills = TECHNICAL_SKILLS.filter(skill => 
-    skill.toLowerCase().includes(searchTerm.toLowerCase()) && 
-    !selectedSkills.includes(skill)
-  );
-
-  const addSkill = (skill) => {
-    onSkillsChange([...selectedSkills, skill]);
-    setSearchTerm('');
-  };
-
-  const removeSkill = (skillToRemove) => {
-    onSkillsChange(selectedSkills.filter(skill => skill !== skillToRemove));
-  };
-
-  return (
-    <div className="relative">
-      <label className="text-sm text-gray-300">Skills</label>
-      
-      {/* Selected Skills Display */}
-      {selectedSkills.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-2 p-2 bg-gray-700 rounded border border-gray-600">
-          {selectedSkills.map(skill => (
-            <span key={skill} className="bg-blue-600 text-white px-2 py-1 rounded text-sm flex items-center gap-1">
-              {skill}
-              <button 
-                onClick={() => removeSkill(skill)}
-                className="text-blue-200 hover:text-white"
-              >
-                ×
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* Search Input */}
-      <input
-        type="text"
-        value={searchTerm}
-        onChange={(e) => {
-          setSearchTerm(e.target.value);
-          setIsOpen(true);
-        }}
-        onFocus={() => setIsOpen(true)}
-        className="w-full rounded px-4 py-2 bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
-        placeholder="Search and select skills..."
-      />
-
-      {/* Dropdown */}
-      {isOpen && searchTerm && (
-        <div className="absolute z-10 w-full mt-1 bg-gray-700 border border-gray-600 rounded max-h-48 overflow-y-auto">
-          {filteredSkills.length > 0 ? (
-            filteredSkills.slice(0, 10).map(skill => (
-              <button
-                key={skill}
-                onClick={() => addSkill(skill)}
-                className="w-full text-left px-4 py-2 hover:bg-gray-600 text-white"
-              >
-                {skill}
-              </button>
-            ))
-          ) : (
-            <div className="px-4 py-2 text-gray-400">No skills found</div>
-          )}
-        </div>
-      )}
-
-      {/* Click outside to close */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 z-5" 
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-    </div>
-  );
-};
+import SkillsSelector from '../common/SkillsSelector';
 
 const Profile = () => {
   const userInfo = useSelector(state => state.user);
@@ -110,7 +12,7 @@ const Profile = () => {
   const dispatch = useDispatch();
 
   // editable fields
-  const [emailState, setEmailState] = useState(email || '');
+  const [emailState] = useState(email || ''); // read-only (backend disallows edit)
   const [firstNameState, setFirstNameState] = useState(firstName || '');
   const [lastNameState, setLastNameState] = useState(lastName || '');
   const [skillsState, setSkillsState] = useState(skills || []);
@@ -125,13 +27,12 @@ const Profile = () => {
 
   const updateData = async () => {
     try {
-      const updatedUserInfoPayload = {
+      const payload = {
         firstName: firstNameState,
         lastName: lastNameState,
         skills: skillsState,
         about: aboutState,
-        photoURL: photoURLState,
-        email: emailState,
+        photoURL: photoURLState
       };
 
       if (isChangingPassword && newPassword) {
@@ -139,10 +40,10 @@ const Profile = () => {
           setError("Passwords do not match!");
           return;
         }
-        updatedUserInfoPayload.password = newPassword;
+        payload.password = newPassword;
       }
 
-      const res = await axios.patch(`${VITE_BASE_URL}/profile/edit`, updatedUserInfoPayload, {
+      const res = await axios.patch(`${VITE_BASE_URL}/profile/edit`, payload, {
         withCredentials: true,
       });
       
@@ -153,7 +54,7 @@ const Profile = () => {
       setConfirmPassword('');
       setSkillsState(res.data.data?.skills || []);
     } catch (err) {
-      setError(err.response?.data?.message || "Error updating profile");
+      setError(err.response?.data?.message || err.response?.data || "Error updating profile");
       console.error("Error in Updating User", err);
     }
   };
@@ -176,13 +77,7 @@ const Profile = () => {
           <p className="text-center font-bold text-2xl mb-4 text-white">Edit Profile</p>
 
           <label className="text-sm text-gray-300">Email</label>
-          <input
-            type="email"
-            value={emailState}
-            onChange={(e) => setEmailState(e.target.value)}
-            className="rounded px-4 py-2 bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
-            placeholder="you@example.com"
-          />
+          <input value={emailState} disabled className="rounded px-4 py-2 bg-gray-700 border border-gray-600 text-gray-400" />
 
           <div className="mt-4">
             <button 
@@ -235,7 +130,9 @@ const Profile = () => {
 
           <SkillsSelector 
             selectedSkills={skillsState}
-            onSkillsChange={setSkillsState}
+            onChange={setSkillsState}
+            label="Skills"
+            className="mt-4"
           />
 
           <label className="text-sm text-gray-300">Photo URL</label>
@@ -273,3 +170,4 @@ const Profile = () => {
 };
 
 export default Profile;
+     

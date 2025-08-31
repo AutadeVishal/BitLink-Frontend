@@ -26,9 +26,8 @@ const Feed = () => {
   }
 
   useEffect(() => {
-    if (feedData==null || feedData?.length == 0) getFeedData();
-
-  }, []);
+    if (!feedData || feedData.length === 0) getFeedData();
+  }, []); 
   return (
     <div className='flex flex-wrap gap-6 justify-center items-center p-4 bg-gray-900'>
       { feedData.map((userData) => (

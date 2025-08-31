@@ -1,7 +1,7 @@
 import { useDispatch } from "react-redux";
 import axios from "axios";
-const  VITE_BASE_URL=import.meta.env.VITE_BASE_URL;
-import { removeUser } from "../utils/feedSlice";
+const VITE_BASE_URL = import.meta.env.VITE_BASE_URL;
+import { removeFeedUser } from "../utils/feedSlice"; // renamed
 
 const FeedCard = ({ userInfo }) => {
   const dispatch = useDispatch();
@@ -14,7 +14,7 @@ const FeedCard = ({ userInfo }) => {
         {},
         { withCredentials: true }
       );
-      dispatch(removeUser(userInfo._id));
+      dispatch(removeFeedUser(userInfo._id));
       console.log("User Sent Request", res.data);
     } catch (err) {
       console.log(err);

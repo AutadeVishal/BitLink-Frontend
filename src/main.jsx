@@ -8,7 +8,7 @@ const rootElement = document.getElementById('root');
 rootElement.className = 'bg-gray-900 min-h-screen';
 
 createRoot(rootElement).render(
- // <StrictMode>
+  <StrictMode>
     <App />
- // </StrictMode>,
+  </StrictMode>,
 )
