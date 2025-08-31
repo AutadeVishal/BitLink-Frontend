@@ -5,31 +5,31 @@ const ConnectionCard = (props) => {
   const { firstName, lastName, skills, about, photoURL, _id, age, gender } = props;
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6 m-4 w-80 text-white flex flex-col justify-between border border-gray-700">
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
       {/* Profile Section */}
       <div className="flex items-center gap-4 mb-4">
         <img
-          src={photoURL || "https://via.placeholder.com/80"} // fallback image
+          src={photoURL || "https://via.placeholder.com/60"}
           alt={`${firstName} ${lastName}`}
-          className="w-16 h-16 rounded-full object-cover border border-gray-600"
+          className="w-15 h-15 rounded-full object-cover"
         />
-        <div>
-          <h2 className="text-xl font-semibold text-white">
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold text-gray-900">
             {firstName} {lastName}
-          </h2>
-          {about && <p className="text-sm text-gray-300 italic">{about}</p>}
+          </h3>
+          {about && <p className="text-sm text-gray-600 mt-1">{about}</p>}
         </div>
       </div>
 
-      {/* Age + Gender */}
-      <div className="flex gap-2 flex-wrap mb-3">
+      {/* Age & Gender */}
+      <div className="flex gap-2 mb-3">
         {age && (
-          <span className="px-3 py-1 text-xs rounded-full bg-gray-700 text-gray-200">
+          <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
             {age} years
           </span>
         )}
         {gender && (
-          <span className="px-3 py-1 text-xs rounded-full bg-gray-700 text-gray-200 capitalize">
+          <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full capitalize">
             {gender}
           </span>
         )}
@@ -37,22 +37,27 @@ const ConnectionCard = (props) => {
 
       {/* Skills */}
       {skills?.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
-          {skills.map((skill, index) => (
+        <div className="flex flex-wrap gap-1 mb-4">
+          {skills.slice(0, 4).map((skill, index) => (
             <span
               key={index}
-              className="bg-gray-700 text-gray-200 px-3 py-1 rounded-full text-sm font-medium"
+              className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-full"
             >
               {skill}
             </span>
           ))}
+          {skills.length > 4 && (
+            <span className="px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded-full">
+              +{skills.length - 4} more
+            </span>
+          )}
         </div>
       )}
 
       {/* Chat Button */}
-      <Link to={`/chat/${_id}`} className="mt-auto">
-        <button className="w-full px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-full hover:bg-blue-700 transition">
-          Chat
+      <Link to={`/chat/${_id}`}>
+        <button className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition">
+          Start Chat
         </button>
       </Link>
     </div>

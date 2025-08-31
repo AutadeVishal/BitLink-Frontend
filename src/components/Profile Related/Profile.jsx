@@ -11,28 +11,31 @@ const Profile = () => {
   const { firstName, lastName, skills, about, photoURL, email } = userInfo || {};
   const dispatch = useDispatch();
 
-  // editable fields
-  const [emailState] = useState(email || ''); // read-only (backend disallows edit)
-  const [firstNameState, setFirstNameState] = useState(firstName || '');
-  const [lastNameState, setLastNameState] = useState(lastName || '');
+  const [formData, setFormData] = useState({
+    firstName: firstName || '',
+    lastName: lastName || '',
+    about: about || '',
+    photoURL: photoURL || ''
+  });
   const [skillsState, setSkillsState] = useState(skills || []);
-  const [aboutState, setAboutState] = useState(about || '');
-  const [photoURLState, setPhotoURLState] = useState(photoURL || '');
-
-  // Password state 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   const updateData = async () => {
     try {
+      setLoading(true);
+      setError(null);
+      
       const payload = {
-        firstName: firstNameState,
-        lastName: lastNameState,
-        skills: skillsState,
-        about: aboutState,
-        photoURL: photoURLState
+        ...formData,
+        skills: skillsState
       };
 
       if (isChangingPassword && newPassword) {
@@ -48,120 +51,147 @@ const Profile = () => {
       });
       
       dispatch(setUser(res.data.data));
-      setError(null);
       setIsChangingPassword(false);
       setNewPassword('');
       setConfirmPassword('');
-      setSkillsState(res.data.data?.skills || []);
     } catch (err) {
-      setError(err.response?.data?.message || err.response?.data || "Error updating profile");
-      console.error("Error in Updating User", err);
+      setError(err.response?.data?.message || "Error updating profile");
+    } finally {
+      setLoading(false);
     }
   };
 
   if (!userInfo) {
     return (
-      <div className="min-h-[50vh] grid place-items-center text-white bg-gray-900">
-        <div className="bg-gray-800 rounded-xl px-6 py-4 border border-gray-700">
-          Loading...
+      <div className="min-h-[400px] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex gap-10 justify-center text-white px-4 bg-gray-900">
-      <div className="flex flex-row gap-10 justify-center mt-10">
-        <fieldset className="flex flex-col bg-gray-800 rounded-lg w-xs p-5 border border-gray-700">
-          {error && <p className="text-center font-bold text-red-400 mb-2">{error}</p>}
-          <p className="text-center font-bold text-2xl mb-4 text-white">Edit Profile</p>
+    <div className="max-w-4xl mx-auto py-8 px-4">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile Settings</h1>
+        <p className="text-gray-600">Manage your professional profile</p>
+      </div>
 
-          <label className="text-sm text-gray-300">Email</label>
-          <input value={emailState} disabled className="rounded px-4 py-2 bg-gray-700 border border-gray-600 text-gray-400" />
+      <div className="grid md:grid-cols-2 gap-8">
+        {/* Edit Form */}
+        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Edit Profile</h2>
+          
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm mb-4">
+              {error}
+            </div>
+          )}
 
-          <div className="mt-4">
-            <button 
-              className="px-3 py-1.5 text-sm rounded border border-gray-600 text-white hover:bg-gray-700"
-              onClick={() => setIsChangingPassword(!isChangingPassword)}
-            >
-              {isChangingPassword ? 'Cancel Password Change' : 'Change Password'}
-            </button>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input 
+                value={email || ''} 
+                disabled 
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500"
+              />
+            </div>
 
-            {isChangingPassword && (
-              <div className="mt-2 space-y-2">
-                <label className="text-sm text-gray-300">New Password</label>
-                <input 
-                  type="password" 
-                  value={newPassword} 
-                  onChange={(e) => setNewPassword(e.target.value)} 
-                  className="rounded px-4 py-2 bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-400" 
-                  placeholder="Enter new password"
-                />
-
-                <label className="text-sm text-gray-300">Confirm Password</label>
-                <input 
-                  type="password" 
-                  value={confirmPassword} 
-                  onChange={(e) => setConfirmPassword(e.target.value)} 
-                  className="rounded px-4 py-2 bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-400" 
-                  placeholder="Confirm new password"
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                <input
+                  value={formData.firstName}
+                  onChange={(e) => handleChange('firstName', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-            )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                <input
+                  value={formData.lastName}
+                  onChange={(e) => handleChange('lastName', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Photo URL</label>
+              <input
+                value={formData.photoURL}
+                onChange={(e) => handleChange('photoURL', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="https://..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">About</label>
+              <textarea
+                value={formData.about}
+                onChange={(e) => handleChange('about', e.target.value)}
+                rows="3"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="A short bio..."
+              />
+            </div>
+
+            <SkillsSelector 
+              selectedSkills={skillsState}
+              onChange={setSkillsState}
+              label="Skills"
+            />
+
+            {/* Password Change Section */}
+            <div className="border-t pt-4">
+              <button 
+                onClick={() => setIsChangingPassword(!isChangingPassword)}
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              >
+                {isChangingPassword ? 'Cancel Password Change' : 'Change Password'}
+              </button>
+
+              {isChangingPassword && (
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                    <input 
+                      type="password" 
+                      value={newPassword} 
+                      onChange={(e) => setNewPassword(e.target.value)} 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                    <input 
+                      type="password" 
+                      value={confirmPassword} 
+                      onChange={(e) => setConfirmPassword(e.target.value)} 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button 
+              onClick={updateData}
+              disabled={loading}
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 transition"
+            >
+              {loading ? "Updating..." : "Update Profile"}
+            </button>
           </div>
+        </div>
 
-          <label className="mt-4 text-sm text-gray-300">First Name</label>
-          <input
-            type="text"
-            value={firstNameState}
-            onChange={(e) => setFirstNameState(e.target.value)}
-            className="rounded px-4 py-2 bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
-            placeholder="First name"
-          />
-
-          <label className="text-sm text-gray-300">Last Name</label>
-          <input
-            type="text"
-            value={lastNameState}
-            onChange={(e) => setLastNameState(e.target.value)}
-            className="rounded px-4 py-2 bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
-            placeholder="Last name"
-          />
-
-          <SkillsSelector 
-            selectedSkills={skillsState}
-            onChange={setSkillsState}
-            label="Skills"
-            className="mt-4"
-          />
-
-          <label className="text-sm text-gray-300">Photo URL</label>
-          <input
-            type="text"
-            value={photoURLState}
-            onChange={(e) => setPhotoURLState(e.target.value)}
-            className="rounded px-4 py-2 bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
-            placeholder="https://..."
-          />
-
-          <label className="text-sm text-gray-300">About</label>
-          <textarea
-            value={aboutState}
-            onChange={(e) => setAboutState(e.target.value)}
-            className="rounded px-4 py-2 bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
-            rows="3"
-            placeholder="A short bio..."
-          ></textarea>
-
-          <button 
-            className="mt-4 px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
-            onClick={updateData}
-          >
-            Update Profile
-          </button>
-        </fieldset>
-        <div>
-          <p className="text-center font-bold text-2xl mb-4 text-white">Profile Preview</p>
+        {/* Preview */}
+        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Preview</h2>
           <FeedCard userInfo={userInfo} />
         </div>
       </div>

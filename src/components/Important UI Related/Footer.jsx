@@ -1,11 +1,11 @@
 const Footer = () => {
   return (
-    <footer className="footer sm:footer-horizontal footer-center bg-gray-800 border border-gray-700 text-gray-300 p-6 rounded-t-xl">
-      <aside>
-        <p className="text-sm opacity-80">
-          © {new Date().getFullYear()} - All rights reserved by Me Myself!
+    <footer className="bg-gray-50 border-t mt-auto py-4">
+      <div className="max-w-6xl mx-auto px-6 text-center">
+        <p className="text-sm text-gray-600">
+          © {new Date().getFullYear()} BitLink. All rights reserved.
         </p>
-      </aside>
+      </div>
     </footer>
   );
 };

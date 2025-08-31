@@ -5,21 +5,38 @@ import RegisterForm from "./RegisterForm";
 const Login = () => {
   const [isLoginMode, setIsLoginMode] = useState(true);
 
-  const toggleMode = () => setIsLoginMode((prev) => !prev);
-
   return (
-    <section className="max-w-md mx-auto mt-12 px-4 bg-gray-800 rounded border border-gray-700 text-white">
-      <p className="mb-6 text-center text-sm text-gray-300">
-        {isLoginMode ? "New here? " : "Already a user? "}
-        <button
-          onClick={toggleMode}
-          className="text-blue-400 hover:underline font-medium"
-        >
-          {isLoginMode ? "Register" : "Login"}
-        </button>
-      </p>
-      {isLoginMode ? <LoginForm /> : <RegisterForm />}
-    </section>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">BitLink</h1>
+          <p className="text-gray-600 mt-2">Connect with professionals</p>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="text-center mb-6">
+            <button
+              onClick={() => setIsLoginMode(true)}
+              className={`px-4 py-2 mr-2 rounded-md ${
+                isLoginMode ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              Login
+            </button>
+            <button
+              onClick={() => setIsLoginMode(false)}
+              className={`px-4 py-2 rounded-md ${
+                !isLoginMode ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              Register
+            </button>
+          </div>
+          
+          {isLoginMode ? <LoginForm /> : <RegisterForm />}
+        </div>
+      </div>
+    </div>
   );
 };
 

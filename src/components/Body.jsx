@@ -52,14 +52,12 @@ const Body = () => {
 }
 
  return (
-  <div className="min-h-screen bg-gray-900 text-white">
-    <div className="mx-4 my-6 p-4 bg-gray-800 rounded border border-gray-700">
-      <NavBar />
-      <div className="my-8">
-        <Outlet />
-      </div>
-      <Footer />
-    </div>
+  <div className="min-h-screen bg-gray-900">
+    <NavBar />
+    <main className="container mx-auto px-4">
+      <Outlet />
+    </main>
+    <Footer />
   </div>
 );
 };

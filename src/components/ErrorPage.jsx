@@ -2,10 +2,12 @@ import React from 'react';
 
 const ErrorPage = () => {
   return (
-    <div className="p-8 bg-gray-800 rounded border border-gray-700 text-white">
-      <h1 className="text-2xl font-bold text-red-400">Something went wrong</h1>
-      <p className="mt-2 text-base text-gray-200">We're sorry, but an unexpected error occurred.</p>
-      <p className="mt-1 text-gray-400">Please try again later.</p>
+    <div className="min-h-[400px] flex items-center justify-center">
+      <div className="text-center bg-white rounded-lg shadow-md border border-gray-200 p-8">
+        <h1 className="text-2xl font-bold text-red-600 mb-4">Oops! Something went wrong</h1>
+        <p className="text-gray-600 mb-2">We're sorry, but an unexpected error occurred.</p>
+        <p className="text-gray-500 text-sm">Please try again later or contact support if the problem persists.</p>
+      </div>
     </div>
   );
 };

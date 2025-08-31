@@ -10,63 +10,63 @@ const LoginForm = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
-    const labelClass = "text-sm text-gray-300";
-    const inputClass = "w-full rounded bg-gray-700 border border-gray-600 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-400 outline-none";
+    const [loading, setLoading] = useState(false)
 
     const handleLogin = async () => {
         try {
+            setLoading(true)
+            setError('')
             const res = await axios.post(`${VITE_BASE_URL}/auth/login`, { email, password }, {
-                withCredentials: true, // for cookies
+                withCredentials: true,
             });
-            const user = res.data.data;
-            dispatch(setUser(user));
-            return navigate('/');
+            dispatch(setUser(res.data.data));
+            navigate('/');
         }
         catch (err) {
-            console.log("Error in Login")
-            setError(err?.response?.data)
+            setError(err?.response?.data || 'Login failed')
+        } finally {
+            setLoading(false)
         }
     }
-    return (
-     <div className="min-h-[70vh] grid place-items-center px-4 text-white bg-gray-900">
-        <fieldset className="w-full max-w-sm bg-gray-800 rounded-lg p-6 border border-gray-700">
-            {error ? (
-                <p className="text-center font-semibold text-red-400 mb-2">
-                    {typeof error === 'string' ? error : JSON.stringify(error)}
-                </p>
-            ) : null}
-            <p className="text-center text-2xl font-semibold mb-4 text-white">Login</p>
 
-            <div className="space-y-1">
-                <label className={labelClass}>Email</label>
+    return (
+        <div className="space-y-4">
+            {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                    {typeof error === 'string' ? error : JSON.stringify(error)}
+                </div>
+            )}
+
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className={inputClass}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="you@example.com"
                 />
             </div>
 
-            <div className="space-y-1 mt-3">
-                <label className={labelClass}>Password</label>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                 <input
                     type="password"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className={inputClass}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Password"
                 />
             </div>
+
             <button
-                className="w-full mt-5 rounded bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 transition"
+                disabled={loading}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
                 onClick={handleLogin}
             >
-                Login
+                {loading ? "Signing in..." : "Sign In"}
             </button>
-
-        </fieldset>
-    </div>
+        </div>
     )
 }
 export default LoginForm;

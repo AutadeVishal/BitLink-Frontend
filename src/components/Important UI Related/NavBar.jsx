@@ -31,70 +31,64 @@ const NavBar = () => {
   }, []);
 
   return (
-    <nav className="relative z-[300] bg-gray-800 border-b border-gray-700 text-white px-6 py-3 flex items-center justify-between">
-      {/* Logo */}
-      <Link
-        to="/"
-        className="text-2xl font-bold tracking-wide hover:text-blue-400 transition"
-      >
-        BitLink
-      </Link>
+    <nav className="bg-white shadow-sm border-b px-6 py-4">
+      <div className="flex items-center justify-between max-w-6xl mx-auto">
+        {/* Logo */}
+        <Link to="/" className="text-2xl font-bold text-blue-600 hover:text-blue-700">
+          BitLink
+        </Link>
 
-      {/* User Section */}
-      {user && (
-        <div className="relative">
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="w-11 h-11 rounded-full overflow-hidden border border-gray-600 hover:ring-2 hover:ring-blue-400 transition"
-          >
-            <img
-              src={user.photoURL || "https://via.placeholder.com/80"}
-              alt="User Avatar"
-              className="w-full h-full object-cover"
-            />
-          </button>
+        {/* User Menu */}
+        {user && (
+          <div className="relative">
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="flex items-center gap-3 hover:bg-gray-50 rounded-lg p-2 transition"
+            >
+              <img
+                src={user.photoURL || "https://via.placeholder.com/32"}
+                alt="Profile"
+                className="w-8 h-8 rounded-full object-cover"
+              />
+              <span className="text-gray-700 font-medium">{user.firstName}</span>
+            </button>
 
-          {/* Dropdown Menu */}
-          {menuOpen && (
-            <ul className="absolute right-0 mt-3 w-56 bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-3 text-sm text-white animate-fadeIn">
-              <li className="mb-2">
+            {menuOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border py-2 z-50">
                 <Link
                   to="/profile"
-                  className="flex justify-between items-center px-3 py-2 rounded hover:bg-gray-700 transition"
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-50"
                 >
-                  Profile{" "}
-                  <span className="bg-gray-700 px-2 py-0.5 rounded-full text-xs">
-                    New
-                  </span>
+                  Profile
                 </Link>
-              </li>
-              <li className="mb-2">
                 <Link
                   to="/connections"
-                  className="block px-3 py-2 rounded hover:bg-gray-700 transition"
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-50"
                 >
                   Connections
                 </Link>
-              </li>
-              <li className="mb-2">
                 <Link
                   to="/requests"
-                  className="block px-3 py-2 rounded hover:bg-gray-700 transition"
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-50"
                 >
                   Requests
                 </Link>
-              </li>
-              <li>
+                <hr className="my-2" />
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left px-3 py-2 rounded hover:bg-red-900 text-red-400 transition"
+                  className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50"
                 >
                   Logout
                 </button>
-              </li>
-            </ul>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      
+      {/* Close menu when clicking outside */}
+      {menuOpen && (
+        <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
       )}
     </nav>
   );

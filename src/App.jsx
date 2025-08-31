@@ -13,9 +13,8 @@ import Chat from "./components/Chat.jsx"
 
 
 function App() {
-
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-gray-50">
       <Provider store={appStore}>
         <BrowserRouter basename="/">
           <Routes>
@@ -28,7 +27,7 @@ function App() {
               <Route path="/requests" element={<Requests />} />
               <Route path="/chat/:targetUserId" element={<Chat />} />
             </Route>
-            <Route path="*" element={<ErrorPage />} /> {/* Catch-all route for 404 */}
+            <Route path="*" element={<ErrorPage />} />
           </Routes>
         </BrowserRouter>
       </Provider>

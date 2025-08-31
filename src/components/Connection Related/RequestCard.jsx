@@ -5,68 +5,100 @@ import { useDispatch } from "react-redux";
 import { removeRequest } from "../../utils/requestSlice";
 
 const RequestCard = ({ user }) => {
-    const dispatch=useDispatch();
-    if (!user) return <h1 className="text-white text-xl">Loading...</h1>;
-    const reviewRequest=async(status,email)=>{
-        try{
-            console.log(status,email)
-            const res=await axios.post(`${VITE_BASE_URL}/connection/request/review/${status}/${email }`,{},{
-                withCredentials:true,
-            })
-            console.log(user._id)
-            dispatch(removeRequest(user._id))
-            console.log(res.data)
-        }catch(err){
-            console.log(err)
+    const dispatch = useDispatch();
+    
+    if (!user) return null;
+
+    const reviewRequest = async (status, email) => {
+        try {
+            await axios.post(
+                `${VITE_BASE_URL}/connection/request/review/${status}/${email}`, 
+                {}, 
+                { withCredentials: true }
+            );
+            dispatch(removeRequest(user._id));
+        } catch (err) {
+            console.error(err);
         }
-    }
+    };
+
     const {
         firstName = "",
         lastName = "",
         skills = [],
         about = "",
         photoURL = "",
+        age,
+        gender
     } = user;
 
     return (
-        <div className="m-10 bg-gray-800 rounded-lg w-80 h-[480px] p-4 flex flex-col justify-between text-white border border-gray-700">
-            <figure className="mb-4">
+        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+            {/* Profile Image */}
+            <div className="text-center mb-4">
                 <img
-                    className="rounded-full w-24 h-24 object-cover mx-auto border border-gray-600"
-                    src={photoURL || "https://via.placeholder.com/150"}
+                    className="w-20 h-20 rounded-full object-cover mx-auto border-2 border-gray-100"
+                    src={photoURL || "https://via.placeholder.com/80"}
                     alt={`${firstName} ${lastName}`}
                 />
-            </figure>
-
-            <div className="text-center space-y-2">
-                <h2 className="text-xl font-semibold tracking-wide text-white">
-                    {firstName} {lastName}
-                </h2>
-                <p className="text-sm text-gray-300">{about}</p>
-
-                <div className="flex flex-wrap justify-center gap-2 mt-2">
-                    {skills?.map((skill, index) => (
-                        <span
-                            key={index}
-                            className="px-3 py-1 text-xs rounded-full bg-gray-700 text-gray-200"
-                        >
-                            {skill}
-                        </span>
-                    ))}
-                </div>
             </div>
 
-            {/* Button group: Accept, Reject */}
-            <div className="flex justify-center gap-3 mt-4">
+            {/* User Info */}
+            <div className="text-center space-y-3">
+                <h3 className="text-lg font-semibold text-gray-900">
+                    {firstName} {lastName}
+                </h3>
+
+                {/* Age & Gender */}
+                <div className="flex justify-center gap-2">
+                    {age && (
+                        <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
+                            {age} years
+                        </span>
+                    )}
+                    {gender && (
+                        <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full capitalize">
+                            {gender}
+                        </span>
+                    )}
+                </div>
+
+                {/* About */}
+                {about && <p className="text-sm text-gray-600">{about}</p>}
+
+                {/* Skills */}
+                {skills?.length > 0 && (
+                    <div className="flex flex-wrap justify-center gap-1">
+                        {skills.slice(0, 4).map((skill, index) => (
+                            <span
+                                key={index}
+                                className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-full"
+                            >
+                                {skill}
+                            </span>
+                        ))}
+                        {skills.length > 4 && (
+                            <span className="px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded-full">
+                                +{skills.length - 4} more
+                            </span>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 mt-6">
                 <button 
-                onClick={()=>reviewRequest("accepted",user.email)}
-                className="px-4 py-2 text-sm text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-colors duration-200">
-                    Accept
+                    onClick={() => reviewRequest("rejected", user.email)}
+                    className="flex-1 px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition"
+                >
+                    Decline
                 </button>
                 <button 
-                onClick={()=>reviewRequest("rejected",user.email)}
-                className="px-4 py-2 text-sm text-white bg-red-600 rounded-full hover:bg-red-700 transition-colors duration-200">
-                    Reject
+                    onClick={() => reviewRequest("accepted", user.email)}
+                    className="flex-1 px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 transition"
+                >
+                    Accept
                 </button>
             </div>
         </div>
