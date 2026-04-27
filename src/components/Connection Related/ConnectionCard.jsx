@@ -1,63 +1,69 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { normalizeSkillList } from "../../utils/skillHelpers";
+import { DEFAULT_AVATAR } from '../../constants/Constants';
 
 const ConnectionCard = (props) => {
-  const { firstName, lastName, skills, about, photoURL, _id, age, gender } = props;
+  const { firstName, lastName, skills, about, photoURL, _id, age, gender, unreadCount = 0 } = props;
+  const normalizedSkills = normalizeSkillList(skills || []);
 
   return (
-    <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-      {/* Profile Section */}
+    <div className="glass-panel hoverable p-5">
       <div className="flex items-center gap-4 mb-4">
-        <img
-          src={photoURL || "https://via.placeholder.com/60"}
-          alt={`${firstName} ${lastName}`}
-          className="w-15 h-15 rounded-full object-cover"
-        />
+        <div className="relative avatar-glow">
+          <img
+            src={photoURL || DEFAULT_AVATAR}
+            alt={`${firstName} ${lastName}`}
+            className="w-16 h-16 rounded-full object-cover ring-2 ring-red-500/30"
+          />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full text-[10px] font-bold text-white bg-gradient-to-r from-red-500 to-orange-500 badge-pulse border-2 border-black/80">
+              {unreadCount}
+            </span>
+          )}
+        </div>
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className={`text-lg font-semibold ${unreadCount > 0 ? 'text-white' : 'text-red-50'}`}>
             {firstName} {lastName}
           </h3>
-          {about && <p className="text-sm text-gray-600 mt-1">{about}</p>}
+          {about && <p className="text-sm text-red-200/80 mt-1 line-clamp-2">{about}</p>}
         </div>
       </div>
 
-      {/* Age & Gender */}
       <div className="flex gap-2 mb-3">
         {age && (
-          <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
+          <span className="badge badge-muted">
             {age} years
           </span>
         )}
         {gender && (
-          <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full capitalize">
+          <span className="badge badge-muted capitalize">
             {gender}
           </span>
         )}
       </div>
 
-      {/* Skills */}
-      {skills?.length > 0 && (
+      {normalizedSkills.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-4">
-          {skills.slice(0, 4).map((skill, index) => (
+          {normalizedSkills.slice(0, 4).map((skill) => (
             <span
-              key={index}
-              className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-full"
+              key={skill.name}
+              className="badge badge-primary"
             >
-              {skill}
+              {skill.name} L{skill.level}
             </span>
           ))}
-          {skills.length > 4 && (
-            <span className="px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded-full">
-              +{skills.length - 4} more
+          {normalizedSkills.length > 4 && (
+            <span className="badge badge-muted">
+              +{normalizedSkills.length - 4} more
             </span>
           )}
         </div>
       )}
 
-      {/* Chat Button */}
       <Link to={`/chat/${_id}`}>
-        <button className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition">
-          Start Chat
+        <button className="w-full btn-primary relative">
+          {unreadCount > 0 ? `${unreadCount} New Message${unreadCount > 1 ? 's' : ''}` : 'Start Chat'}
         </button>
       </Link>
     </div>

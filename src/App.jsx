@@ -9,12 +9,13 @@ import ErrorPage from "./components/ErrorPage"
 import Connections from "./components/Connection Related/Connections.jsx"
 import Requests from "./components/Connection Related/Requests"
 import Chat from "./components/Chat.jsx"
+import ChatsInbox from "./components/ChatsInbox.jsx"
 
 
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <Provider store={appStore}>
         <BrowserRouter basename="/">
           <Routes>
@@ -25,6 +26,7 @@ function App() {
               <Route path="/error" element={<ErrorPage />} />
               <Route path="/connections" element={<Connections />} />
               <Route path="/requests" element={<Requests />} />
+              <Route path="/chats" element={<ChatsInbox />} />
               <Route path="/chat/:targetUserId" element={<Chat />} />
             </Route>
             <Route path="*" element={<ErrorPage />} />

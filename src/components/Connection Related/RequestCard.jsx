@@ -1,8 +1,9 @@
 import axios from "axios";
 import React from "react";
-const VITE_BASE_URL=import.meta.env.VITE_BASE_URL;
+import { BASE_URL, DEFAULT_AVATAR } from '../../constants/Constants';
 import { useDispatch } from "react-redux";
 import { removeRequest } from "../../utils/requestSlice";
+import { normalizeSkillList } from "../../utils/skillHelpers";
 
 const RequestCard = ({ user }) => {
     const dispatch = useDispatch();
@@ -12,7 +13,7 @@ const RequestCard = ({ user }) => {
     const reviewRequest = async (status, email) => {
         try {
             await axios.post(
-                `${VITE_BASE_URL}/connection/request/review/${status}/${email}`, 
+                `${BASE_URL}/connection/request/review/${status}/${email}`, 
                 {}, 
                 { withCredentials: true }
             );
@@ -32,71 +33,69 @@ const RequestCard = ({ user }) => {
         gender
     } = user;
 
+    const normalizedSkills = normalizeSkillList(skills);
+
     return (
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-            {/* Profile Image */}
+        <div className="glass-panel hoverable p-5">
             <div className="text-center mb-4">
-                <img
-                    className="w-20 h-20 rounded-full object-cover mx-auto border-2 border-gray-100"
-                    src={photoURL || "https://via.placeholder.com/80"}
-                    alt={`${firstName} ${lastName}`}
-                />
+                <div className="relative inline-block avatar-glow">
+                    <img
+                        className="w-20 h-20 rounded-full object-cover mx-auto ring-2 ring-red-500/35"
+                        src={photoURL || DEFAULT_AVATAR}
+                        alt={`${firstName} ${lastName}`}
+                    />
+                </div>
             </div>
 
-            {/* User Info */}
             <div className="text-center space-y-3">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-red-50">
                     {firstName} {lastName}
                 </h3>
 
-                {/* Age & Gender */}
                 <div className="flex justify-center gap-2">
                     {age && (
-                        <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
+                        <span className="badge badge-muted">
                             {age} years
                         </span>
                     )}
                     {gender && (
-                        <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full capitalize">
+                        <span className="badge badge-muted capitalize">
                             {gender}
                         </span>
                     )}
                 </div>
 
-                {/* About */}
-                {about && <p className="text-sm text-gray-600">{about}</p>}
+                {about && <p className="text-sm text-red-200/80">{about}</p>}
 
-                {/* Skills */}
-                {skills?.length > 0 && (
+                {normalizedSkills.length > 0 && (
                     <div className="flex flex-wrap justify-center gap-1">
-                        {skills.slice(0, 4).map((skill, index) => (
+                        {normalizedSkills.slice(0, 4).map((skill) => (
                             <span
-                                key={index}
-                                className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-full"
+                                key={skill.name}
+                                className="badge badge-primary"
                             >
-                                {skill}
+                                {skill.name} L{skill.level}
                             </span>
                         ))}
-                        {skills.length > 4 && (
-                            <span className="px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded-full">
-                                +{skills.length - 4} more
+                        {normalizedSkills.length > 4 && (
+                            <span className="badge badge-muted">
+                                +{normalizedSkills.length - 4} more
                             </span>
                         )}
                     </div>
                 )}
             </div>
 
-            {/* Action Buttons */}
             <div className="flex gap-3 mt-6">
                 <button 
                     onClick={() => reviewRequest("rejected", user.email)}
-                    className="flex-1 px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition"
+                    className="btn-secondary flex-1"
                 >
                     Decline
                 </button>
                 <button 
                     onClick={() => reviewRequest("accepted", user.email)}
-                    className="flex-1 px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 transition"
+                    className="btn-primary flex-1"
                 >
                     Accept
                 </button>

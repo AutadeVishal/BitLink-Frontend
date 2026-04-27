@@ -1,85 +1,147 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { TECHNICAL_SKILLS } from '../../constants/skills';
+import { clampSkillLevel, normalizeSkillList } from '../../utils/skillHelpers';
 
-const SkillsSelector = ({ selectedSkills, onChange, label, className = "" }) => {
+const SkillsSelector = ({
+  selectedSkills,
+  onChange,
+  label,
+  className = "",
+  showLevelEditor = true,
+  defaultLevel = 5,
+  minLevel = 1,
+  maxLevel = 10,
+  placeholder = 'Search and add skills...'
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
-  const filteredSkills = TECHNICAL_SKILLS.filter(skill =>
-    skill.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    !selectedSkills.includes(skill)
+  const normalizedSelectedSkills = useMemo(
+    () => normalizeSkillList(selectedSkills, defaultLevel),
+    [selectedSkills, defaultLevel]
   );
 
+  const selectedSkillNames = useMemo(
+    () => new Set(normalizedSelectedSkills.map((skill) => skill.name.toLowerCase())),
+    [normalizedSelectedSkills]
+  );
+
+  const filteredSkills = TECHNICAL_SKILLS.filter((skill) => {
+    const matchesSearch = skill.toLowerCase().includes(searchTerm.toLowerCase());
+    const alreadySelected = selectedSkillNames.has(skill.toLowerCase());
+    return matchesSearch && !alreadySelected;
+  });
+
+  const commitSkills = (nextSkills) => {
+    onChange(normalizeSkillList(nextSkills, defaultLevel));
+  };
+
   const addSkill = (skill) => {
-    onChange([...selectedSkills, skill]);
+    commitSkills([...normalizedSelectedSkills, { name: skill, level: defaultLevel }]);
     setSearchTerm('');
     setIsOpen(false);
   };
 
   const removeSkill = (skillToRemove) => {
-    onChange(selectedSkills.filter(skill => skill !== skillToRemove));
+    commitSkills(
+      normalizedSelectedSkills.filter(
+        (skill) => skill.name.toLowerCase() !== skillToRemove.toLowerCase()
+      )
+    );
+  };
+
+  const updateSkillLevel = (skillName, level) => {
+    commitSkills(
+      normalizedSelectedSkills.map((skill) => {
+        if (skill.name.toLowerCase() !== skillName.toLowerCase()) {
+          return skill;
+        }
+
+        return {
+          ...skill,
+          level: Math.max(minLevel, Math.min(maxLevel, clampSkillLevel(level, defaultLevel)))
+        };
+      })
+    );
   };
 
   return (
     <div className={`relative ${className}`}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+        <label className="block text-sm font-semibold text-red-100 mb-2 tracking-wide">{label}</label>
       )}
       
-      {/* Selected Skills */}
-      {selectedSkills.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-3">
-          {selectedSkills.map(skill => (
-            <span 
-              key={skill} 
-              className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+      {normalizedSelectedSkills.length > 0 && (
+        <div className="space-y-2 mb-3">
+          {normalizedSelectedSkills.map((skill) => (
+            <div
+              key={skill.name}
+              className="glass-subpanel flex flex-wrap items-center gap-2 px-3 py-2"
             >
-              {skill}
-              <button 
-                onClick={() => removeSkill(skill)} 
-                className="text-blue-600 hover:text-blue-800 ml-1"
+              <span className="badge badge-primary">{skill.name}</span>
+
+              {showLevelEditor && (
+                <div className="flex items-center gap-2 text-sm text-red-100">
+                  <span className="text-xs uppercase tracking-wide text-red-300">Level</span>
+                  <input
+                    type="number"
+                    min={minLevel}
+                    max={maxLevel}
+                    value={skill.level}
+                    onChange={(event) => updateSkillLevel(skill.name, event.target.value)}
+                    className="w-16 input-dark px-2 py-1 text-center"
+                  />
+                </div>
+              )}
+
+              {!showLevelEditor && (
+                <span className="badge badge-muted">L{skill.level}</span>
+              )}
+
+              <button
+                type="button"
+                onClick={() => removeSkill(skill.name)}
+                className="ml-auto text-red-300 hover:text-red-100 text-sm"
               >
-                ×
+                Remove
               </button>
-            </span>
+            </div>
           ))}
         </div>
       )}
 
-      {/* Search Input */}
       <input
         value={searchTerm}
-        onChange={e => {
+        onChange={(e) => {
           setSearchTerm(e.target.value);
           setIsOpen(true);
         }}
         onFocus={() => setIsOpen(true)}
-        placeholder="Search and add skills..."
-        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        placeholder={placeholder}
+        className="input-dark"
       />
 
-      {/* Dropdown */}
       {isOpen && searchTerm && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+        <div className="absolute z-20 w-full mt-1 glass-panel max-h-56 overflow-y-auto">
           {filteredSkills.length ? (
-            filteredSkills.slice(0, 8).map(skill => (
+            filteredSkills.slice(0, 8).map((skill) => (
               <button
                 key={skill}
+                type="button"
                 onClick={() => addSkill(skill)}
-                className="w-full text-left px-4 py-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                className="w-full text-left px-4 py-2 hover:bg-red-500/20 border-b border-white/5 last:border-b-0 text-red-100"
               >
                 {skill}
               </button>
             ))
           ) : (
-            <div className="px-4 py-2 text-gray-500">No skills found</div>
+            <div className="px-4 py-2 text-red-300">No skills found</div>
           )}
         </div>
       )}
 
-      {/* Backdrop */}
       {isOpen && (
-        <div className="fixed inset-0 z-5" onClick={() => setIsOpen(false)} />
+        <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
       )}
     </div>
   );

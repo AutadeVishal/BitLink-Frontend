@@ -1,69 +1,76 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-const  VITE_BASE_URL=import.meta.env.VITE_BASE_URL;
+import { BASE_URL } from '../../constants/Constants';
 import { useDispatch, useSelector } from 'react-redux';
 import { setRequest } from '../../utils/requestSlice';
 import RequestCard from './RequestCard';
+
+const CardSkeleton = () => (
+  <div className="glass-panel p-5 space-y-4">
+    <div className="flex justify-center"><div className="skeleton-circle w-20 h-20" /></div>
+    <div className="space-y-2">
+      <div className="skeleton h-5 w-32 mx-auto" />
+      <div className="flex justify-center gap-2">
+        <div className="skeleton h-5 w-16 rounded-full" />
+        <div className="skeleton h-5 w-14 rounded-full" />
+      </div>
+      <div className="skeleton h-4 w-full" />
+    </div>
+    <div className="flex gap-3">
+      <div className="skeleton h-10 flex-1" />
+      <div className="skeleton h-10 flex-1" />
+    </div>
+  </div>
+);
 
 const Requests = () => {
   const dispatch = useDispatch();
   const requests = useSelector((state) => state.request);
   const [loading, setLoading] = useState(true);
 
-  const fetchRequests = async () => {
-    try {
-      const res = await axios.get(`${VITE_BASE_URL}/request/view`, {
-        withCredentials: true,
-      });
-      dispatch(setRequest(res?.data?.data || []));
-    } catch (err) {
-      console.error('Error fetching requests:', err);
-      dispatch(setRequest([]));
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/request/view`, {
+          withCredentials: true,
+        });
+        dispatch(setRequest(res?.data?.data || []));
+      } catch (err) {
+        console.error('Error fetching requests:', err);
+        dispatch(setRequest([]));
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchRequests();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading requests...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!requests || requests.length === 0) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-            No connection requests
-          </h2>
-          <p className="text-gray-600">You'll see new connection requests here</p>
-        </div>
-      </div>
-    );
-  }
+  }, [dispatch]);
 
   return (
-    <div className="py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Connection Requests</h1>
-        <p className="text-gray-600">{requests.length} pending requests</p>
+    <div className="page-shell page-enter">
+      <div className="mb-6">
+        <h1 className="section-title">Requests</h1>
+        <p className="subtitle">Review who wants to connect with you.</p>
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        {requests.map((user) => (
-          <RequestCard key={user._id} user={user} />
-        ))}
-      </div>
+
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(3)].map((_, i) => <CardSkeleton key={i} />)}
+        </div>
+      ) : !requests || requests.length === 0 ? (
+        <div className="glass-panel p-8 text-center">
+          <h2 className="text-xl font-semibold text-red-50 mb-2">
+            No connection requests
+          </h2>
+          <p className="subtitle">You will see incoming requests here.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-grid">
+          {requests.map((user) => (
+            <RequestCard key={user._id} user={user} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

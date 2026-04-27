@@ -11,7 +11,7 @@ const feedSlice=createSlice({
             const id = action.payload;
             return state.filter(user => user._id !== id);
         },
-        removeFeed(state){
+        removeFeed(){
             return [];
         }
     }

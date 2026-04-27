@@ -1,16 +1,20 @@
 import { useDispatch } from "react-redux";
 import axios from "axios";
-const VITE_BASE_URL = import.meta.env.VITE_BASE_URL;
+import { BASE_URL, DEFAULT_AVATAR } from '../constants/Constants';
 import { removeFeedUser } from "../utils/feedSlice"; // renamed
+import { normalizeSkillList } from "../utils/skillHelpers";
+import { getProjectTypeLabel } from "../constants/projectTypes";
 
-const FeedCard = ({ userInfo }) => {
+const FeedCard = ({ userInfo, showActions = true }) => {
   const dispatch = useDispatch();
-  const { firstName, lastName, skills, about, photoURL, age, gender } = userInfo;
+  const { firstName, lastName, skills, about, photoURL, age, gender, projectTypes } = userInfo;
+
+  const normalizedSkills = normalizeSkillList(skills || []);
 
   const handleConnection = async (status, email) => {
     try {
       await axios.post(
-        `${VITE_BASE_URL}/connection/request/send/${status}/${email}`,
+        `${BASE_URL}/connection/request/send/${status}/${email}`,
         {},
         { withCredentials: true }
       );
@@ -23,76 +27,84 @@ const FeedCard = ({ userInfo }) => {
   if (!userInfo) return null;
 
   return (
-    <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 w-80">
-      {/* Profile Image */}
+    <div className="glass-panel hoverable p-5 w-full">
       <div className="text-center mb-4">
-        <img
-          className="w-20 h-20 rounded-full object-cover mx-auto border-2 border-gray-100"
-          src={photoURL || "https://via.placeholder.com/80"}
-          alt={`${firstName} ${lastName}`}
-        />
+        <div className="relative inline-block avatar-glow">
+          <img
+            className="w-20 h-20 rounded-full object-cover ring-2 ring-red-500/40"
+            src={photoURL || DEFAULT_AVATAR}
+            alt={`${firstName} ${lastName}`}
+          />
+        </div>
       </div>
 
-      {/* User Info */}
       <div className="text-center space-y-3">
-        <h3 className="text-xl font-semibold text-gray-900">
+        <h3 className="text-xl font-semibold text-red-50">
           {firstName} {lastName}
         </h3>
 
-        {/* Age & Gender */}
         <div className="flex justify-center gap-2">
           {age && (
-            <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
+            <span className="badge badge-muted">
               {age} years
             </span>
           )}
           {gender && (
-            <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full capitalize">
+            <span className="badge badge-muted capitalize">
               {gender}
             </span>
           )}
         </div>
 
-        {/* About */}
         {about && (
-          <p className="text-sm text-gray-600 italic px-2">{about}</p>
+          <p className="text-sm text-red-100/80 italic px-2">{about}</p>
         )}
 
-        {/* Skills */}
-        {skills?.length > 0 && (
+        {normalizedSkills.length > 0 && (
           <div className="flex flex-wrap justify-center gap-1 mt-3">
-            {skills.slice(0, 6).map((skill, index) => (
+            {normalizedSkills.slice(0, 6).map((skill) => (
               <span
-                key={index}
-                className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-full"
+                key={skill.name}
+                className="badge badge-primary"
               >
-                {skill}
+                {skill.name} L{skill.level}
               </span>
             ))}
-            {skills.length > 6 && (
-              <span className="px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded-full">
-                +{skills.length - 6} more
+            {normalizedSkills.length > 6 && (
+              <span className="badge badge-muted">
+                +{normalizedSkills.length - 6} more
               </span>
             )}
           </div>
         )}
+
+        {Array.isArray(projectTypes) && projectTypes.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-1 mt-2">
+            {projectTypes.slice(0, 4).map((type) => (
+              <span key={type} className="badge badge-muted">
+                {getProjectTypeLabel(type)}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Actions */}
-      <div className="flex gap-3 mt-6">
-        <button
-          onClick={() => handleConnection("ignored", userInfo.email)}
-          className="flex-1 px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition"
-        >
-          Pass
-        </button>
-        <button
-          onClick={() => handleConnection("interested", userInfo.email)}
-          className="flex-1 px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 transition"
-        >
-          Connect
-        </button>
-      </div>
+      {showActions && userInfo.email && (
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={() => handleConnection("ignored", userInfo.email)}
+            className="btn-secondary flex-1"
+          >
+            Pass
+          </button>
+          <button
+            onClick={() => handleConnection("interested", userInfo.email)}
+            className="btn-primary flex-1"
+          >
+            Connect
+          </button>
+        </div>
+      )}
     </div>
   );
 };
