@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import FeedCard from './FeedCard';
+import FeedFilters from '../FeedFilters';
 import { useDispatch, useSelector } from 'react-redux';
 import { setFeed } from '../utils/feedSlice';
 import axios from 'axios';
 import { BASE_URL } from '../constants/Constants';
 import { useNavigate } from 'react-router-dom';
-import SkillsSelector from './common/SkillsSelector';
-import { PROJECT_TYPES, getProjectTypeLabel } from '../constants/projectTypes';
+import { AnimatePresence, motion } from "framer-motion";
 
 const Feed = () => {
   const feedData = useSelector(state => state.feed);
@@ -15,8 +15,8 @@ const Feed = () => {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     minAge: '',
     maxAge: '',
@@ -102,7 +102,6 @@ const Feed = () => {
   }, [dispatch, navigate]);
 
   const resetFilters = () => {
-    setSearchText('');
     setFilters({
       minAge: '',
       maxAge: '',
@@ -114,16 +113,12 @@ const Feed = () => {
     });
   };
 
-  const toggleProjectType = (type) => {
-    setFilters((previous) => {
-      const alreadySelected = previous.projectTypes.includes(type);
-      return {
-        ...previous,
-        projectTypes: alreadySelected
-          ? previous.projectTypes.filter((projectType) => projectType !== type)
-          : [...previous.projectTypes, type]
-      };
-    });
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+  };
+
+  const toggleFilters = () => {
+    setShowFilters(!showFilters);
   };
 
   useEffect(() => {
@@ -135,183 +130,654 @@ const Feed = () => {
     return () => clearTimeout(timer);
   }, [feedQuery, getFeedData]);
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08,
+        delayChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { 
+      opacity: 0, 
+      y: 20,
+      scale: 0.95
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 24,
+        duration: 0.4
+      }
+    },
+    exit: {
+      opacity: 0,
+      y: -20,
+      scale: 0.9,
+      transition: {
+        duration: 0.2,
+        ease: "easeIn"
+      }
+    }
+  };
+
+  const searchBarVariants = {
+    initial: { scale: 1 },
+    focus: { 
+      scale: 1.02,
+      boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.3)",
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 25
+      }
+    }
+  };
+
+  const filterToggleVariants = {
+    initial: { scale: 1 },
+    hover: { 
+      scale: 1.05,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 15
+      }
+    },
+    tap: { 
+      scale: 0.95,
+      transition: {
+        type: "spring",
+        stiffness: 600,
+        damping: 20
+      }
+    }
+  };
+
+  const filterIconVariants = {
+    closed: { 
+      rotate: 0,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 25,
+        duration: 0.3
+      }
+    },
+    open: { 
+      rotate: 180,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 25,
+        duration: 0.3
+      }
+    }
+  };
+
+  const filterPanelVariants = {
+    hidden: { 
+      opacity: 0,
+      height: 0,
+      y: -20,
+      scale: 0.95,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 30,
+        duration: 0.2
+      }
+    },
+    visible: { 
+      opacity: 1,
+      height: "auto",
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 25,
+        duration: 0.4,
+        staggerChildren: 0.05,
+        delayChildren: 0.1
+      }
+    },
+    exit: { 
+      opacity: 0,
+      height: 0,
+      y: -20,
+      scale: 0.95,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 30,
+        duration: 0.25
+      }
+    }
+  };
+
+  const filterChildVariants = {
+    hidden: { opacity: 0, y: -10 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 25
+      }
+    }
+  };
+
+  const errorVariants = {
+    hidden: { 
+      opacity: 0, 
+      y: -10,
+      height: 0
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      height: "auto",
+      transition: {
+        type: "spring",
+        stiffness: 500,
+        damping: 30,
+        duration: 0.3
+      }
+    },
+    exit: {
+      opacity: 0,
+      y: -10,
+      height: 0,
+      transition: {
+        duration: 0.2,
+        ease: "easeIn"
+      }
+    }
+  };
+
+  const headerVariants = {
+    hidden: { opacity: 0, y: -20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 25,
+        duration: 0.5
+      }
+    }
+  };
+
+  const emptyStateVariants = {
+    hidden: { 
+      opacity: 0, 
+      y: 25, 
+      scale: 0.96 
+    },
+    animate: { 
+      opacity: 1, 
+      y: 0, 
+      scale: 1 
+    },
+    exit: { 
+      opacity: 0, 
+      y: -15,
+      scale: 0.9
+    },
+    hover: {
+      scale: 1.02,
+      boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 20
+      }
+    }
+  };
+
+  const floatingIconVariants = {
+    animate: {
+      y: [0, -8, 0],
+      rotate: [0, 5, -5, 0],
+      transition: {
+        y: {
+          duration: 2.5,
+          repeat: Infinity,
+          ease: "easeInOut"
+        },
+        rotate: {
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }
+      }
+    }
+  };
+
+  const loaderVariants = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.8,
+      transition: {
+        duration: 0.25
+      }
+    }
+  };
+
+  const skeletonVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 30,
+        duration: 0.3
+      }
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.9,
+      transition: {
+        duration: 0.2
+      }
+    }
+  };
+
+  const activeFiltersBadgeVariants = {
+    hidden: { scale: 0, opacity: 0 },
+    visible: { 
+      scale: 1, 
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 500,
+        damping: 20
+      }
+    },
+    exit: { 
+      scale: 0, 
+      opacity: 0,
+      transition: {
+        duration: 0.2
+      }
+    }
+  };
+
+  const getActiveFilterCount = () => {
+    let count = 0;
+    if (filters.minAge) count++;
+    if (filters.maxAge) count++;
+    if (filters.gender) count++;
+    if (filters.skills.length > 0) count++;
+    if (filters.projectTypes.length > 0) count++;
+    return count;
+  };
+
   return (
-    <div className="page-shell page-enter">
-      <div className="mb-6">
+    <motion.div 
+      className="page-shell page-enter"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+    >
+      <motion.div 
+        className="mb-6"
+        variants={headerVariants}
+        initial="hidden"
+        animate="visible"
+      >
         <h1 className="section-title">Discover Talent</h1>
         <p className="subtitle">Search by name and refine by age, skills, gender, and project domain.</p>
-      </div>
+      </motion.div>
 
-      <div className="glass-panel p-5 mb-6 space-y-4">
-        <div className="grid md:grid-cols-3 gap-3">
+      <motion.div 
+        className="mb-4 flex flex-col sm:flex-row gap-3"
+      >
+        <motion.div 
+          className="flex-1"
+          initial="initial"
+          whileFocus="focus"
+          variants={searchBarVariants}
+        >
           <input
             value={searchText}
             onChange={(event) => setSearchText(event.target.value)}
-            className="input-dark md:col-span-2"
+            className="input-dark w-full"
             placeholder="Search by first or last name"
           />
+        </motion.div>
 
-          <button
-            type="button"
-            onClick={() => setFiltersOpen((prev) => !prev)}
-            className={`btn-secondary flex items-center justify-center gap-2 ${
-              filtersOpen ? 'border-red-500/50 text-red-100' : ''
-            }`}
+        <motion.button
+          className="btn-secondary flex items-center justify-center gap-2 whitespace-nowrap"
+          onClick={toggleFilters}
+          variants={filterToggleVariants}
+          initial="initial"
+          whileHover="hover"
+          whileTap="tap"
+          animate={showFilters ? "open" : "closed"}
+        >
+          <motion.span
+            variants={filterIconVariants}
+            className="inline-block"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="4" y1="6" x2="20" y2="6" />
-              <line x1="8" y1="12" x2="16" y2="12" />
-              <line x1="11" y1="18" x2="13" y2="18" />
-            </svg>
-            Filters
-            {filtersOpen ? ' ▲' : ' ▼'}
-          </button>
-        </div>
-
-        {filtersOpen && (
-          <div className="space-y-4 pt-2 border-t border-white/10">
-            <div className="grid md:grid-cols-3 gap-3">
-              <select
-                value={filters.gender}
-                onChange={(event) => setFilters((previous) => ({ ...previous, gender: event.target.value }))}
-                className="select-dark"
+            ⚙️
+          </motion.span>
+          <span>Filters</span>
+          <AnimatePresence>
+            {getActiveFilterCount() > 0 && (
+              <motion.span
+                variants={activeFiltersBadgeVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="bg-blue-500 text-white text-xs font-bold rounded-full px-2 py-0.5 min-w-[20px]"
               >
-                <option value="">All genders</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
+                {getActiveFilterCount()}
+              </motion.span>
+            )}
+          </AnimatePresence>
+          <motion.span
+            animate={{ 
+              rotate: showFilters ? 180 : 0 
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 400,
+              damping: 25
+            }}
+          >
+            ▼
+          </motion.span>
+        </motion.button>
+      </motion.div>
 
-              <input
-                type="number"
-                min="18"
-                value={filters.minAge}
-                onChange={(event) => setFilters((previous) => ({ ...previous, minAge: event.target.value }))}
-                className="input-dark"
-                placeholder="Min age"
+      <AnimatePresence mode="wait">
+        {showFilters && (
+          <motion.div
+            key="filterPanel"
+            variants={filterPanelVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="mb-4 overflow-hidden"
+          >
+            <motion.div variants={filterChildVariants}>
+              <FeedFilters
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onReset={resetFilters}
               />
-              <input
-                type="number"
-                min="18"
-                value={filters.maxAge}
-                onChange={(event) => setFilters((previous) => ({ ...previous, maxAge: event.target.value }))}
-                className="input-dark"
-                placeholder="Max age"
-              />
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-3">
-              <input
-                type="number"
-                min="1"
-                max="10"
-                value={filters.minSkillLevel}
-                onChange={(event) => {
-                  const nextValue = Number(event.target.value);
-                  setFilters((previous) => ({
-                    ...previous,
-                    minSkillLevel: nextValue,
-                    maxSkillLevel: Math.max(nextValue, previous.maxSkillLevel)
-                  }));
-                }}
-                className="input-dark"
-                placeholder="Min skill level"
-              />
-              <input
-                type="number"
-                min="1"
-                max="10"
-                value={filters.maxSkillLevel}
-                onChange={(event) => {
-                  const nextValue = Number(event.target.value);
-                  setFilters((previous) => ({
-                    ...previous,
-                    maxSkillLevel: nextValue,
-                    minSkillLevel: Math.min(previous.minSkillLevel, nextValue)
-                  }));
-                }}
-                className="input-dark"
-                placeholder="Max skill level"
-              />
-            </div>
-
-            <SkillsSelector
-              selectedSkills={filters.skills}
-              onChange={(skills) => setFilters((previous) => ({ ...previous, skills }))}
-              label="Filter by skills"
-              showLevelEditor={false}
-              placeholder="Choose skills for matching"
-            />
-
-            <div>
-              <p className="text-sm font-semibold text-red-100 mb-2 tracking-wide">Project Types</p>
-              <div className="flex flex-wrap gap-2">
-                {PROJECT_TYPES.map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => toggleProjectType(type)}
-                    className={`badge ${
-                      filters.projectTypes.includes(type)
-                        ? 'badge-accent'
-                        : 'badge-muted'
-                    }`}
-                  >
-                    {getProjectTypeLabel(type)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex justify-end">
-              <button type="button" onClick={resetFilters} className="btn-secondary px-4">
-                Reset Filters
-              </button>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
 
-      {error && <div className="alert-error mb-4">{error}</div>}
+      <AnimatePresence mode="wait">
+        {error && (
+          <motion.div 
+            className="alert-error mb-4"
+            variants={errorVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="glass-panel p-5 space-y-4">
-              <div className="flex justify-center"><div className="skeleton-circle w-20 h-20" /></div>
-              <div className="space-y-2">
-                <div className="skeleton h-5 w-32 mx-auto" />
-                <div className="flex justify-center gap-2">
-                  <div className="skeleton h-5 w-16 rounded-full" />
-                  <div className="skeleton h-5 w-14 rounded-full" />
+      <AnimatePresence mode="wait">
+        {loading ? (
+          <motion.div
+            key="loading"
+            variants={loaderVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+            {[...Array(6)].map((_, i) => (
+              <motion.div 
+                key={i} 
+                variants={skeletonVariants}
+                className="glass-panel p-5 space-y-4"
+                whileHover={{ 
+                  scale: 1.02,
+                  boxShadow: "0 8px 30px rgba(0,0,0,0.2)",
+                  transition: { duration: 0.2 }
+                }}
+              >
+                <div className="flex justify-center">
+                  <motion.div 
+                    className="skeleton-circle w-20 h-20"
+                    animate={{
+                      opacity: [0.7, 1, 0.7]
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
                 </div>
-                <div className="skeleton h-4 w-full" />
-                <div className="flex justify-center gap-1">
-                  <div className="skeleton h-5 w-20 rounded-full" />
-                  <div className="skeleton h-5 w-16 rounded-full" />
-                  <div className="skeleton h-5 w-18 rounded-full" />
+
+                <div className="space-y-2">
+                  <motion.div 
+                    className="skeleton h-5 w-32 mx-auto"
+                    animate={{
+                      opacity: [0.7, 1, 0.7]
+                    }}
+                    transition={{
+                      duration: 1.8,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: 0.2
+                    }}
+                  />
+                  <div className="flex justify-center gap-2">
+                    <motion.div 
+                      className="skeleton h-5 w-16 rounded-full"
+                      animate={{
+                        opacity: [0.7, 1, 0.7]
+                      }}
+                      transition={{
+                        duration: 1.6,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 0.4
+                      }}
+                    />
+                    <motion.div 
+                      className="skeleton h-5 w-14 rounded-full"
+                      animate={{
+                        opacity: [0.7, 1, 0.7]
+                      }}
+                      transition={{
+                        duration: 1.7,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 0.3
+                      }}
+                    />
+                  </div>
+
+                  <motion.div 
+                    className="skeleton h-4 w-full"
+                    animate={{
+                      opacity: [0.7, 1, 0.7]
+                    }}
+                    transition={{
+                      duration: 1.9,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: 0.5
+                    }}
+                  />
+
+                  <div className="flex justify-center gap-1">
+                    <motion.div 
+                      className="skeleton h-5 w-20 rounded-full"
+                      animate={{
+                        opacity: [0.7, 1, 0.7]
+                      }}
+                      transition={{
+                        duration: 1.4,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 0.1
+                      }}
+                    />
+                    <motion.div 
+                      className="skeleton h-5 w-16 rounded-full"
+                      animate={{
+                        opacity: [0.7, 1, 0.7]
+                      }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 0.3
+                      }}
+                    />
+                    <motion.div 
+                      className="skeleton h-5 w-18 rounded-full"
+                      animate={{
+                        opacity: [0.7, 1, 0.7]
+                      }}
+                      transition={{
+                        duration: 1.6,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 0.2
+                      }}
+                    />
+                  </div>
                 </div>
+
+                <div className="flex gap-3 mt-4">
+                  <motion.div 
+                    className="skeleton h-10 flex-1"
+                    animate={{
+                      opacity: [0.7, 1, 0.7]
+                    }}
+                    transition={{
+                      duration: 1.3,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: 0.5
+                    }}
+                  />
+                  <motion.div 
+                    className="skeleton h-10 flex-1"
+                    animate={{
+                      opacity: [0.7, 1, 0.7]
+                    }}
+                    transition={{
+                      duration: 1.4,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: 0.6
+                    }}
+                  />
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        ) : !feedData || feedData.length === 0 ? (
+          <motion.div
+            key="empty"
+            variants={emptyStateVariants}
+            initial="hidden"
+            animate="animate"
+            exit="exit"
+            whileHover="hover"
+            className="glass-panel p-10 text-center"
+          >
+            <motion.div
+              variants={floatingIconVariants}
+              animate="animate"
+              className="text-6xl mb-4"
+            >
+              <div className="flex items-center justify-center">
+                <motion.svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="100"
+                  height="100"
+                  viewBox="0 0 50 50"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                >
+                  <path d="M 21 3 C 11.621094 3 4 10.621094 4 20 C 4 29.378906 11.621094 37 21 37 C 24.710938 37 28.140625 35.804688 30.9375 33.78125 L 44.09375 46.90625 L 46.90625 44.09375 L 33.90625 31.0625 C 36.460938 28.085938 38 24.222656 38 20 C 38 10.621094 30.378906 3 21 3 Z M 21 5 C 29.296875 5 36 11.703125 36 20 C 36 28.296875 29.296875 35 21 35 C 12.703125 35 6 28.296875 6 20 C 6 11.703125 12.703125 5 21 5 Z" />
+                </motion.svg>
               </div>
-              <div className="flex gap-3 mt-4">
-                <div className="skeleton h-10 flex-1" />
-                <div className="skeleton h-10 flex-1" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : !feedData || feedData.length === 0 ? (
-        <div className="glass-panel p-8 text-center">
-          <h2 className="text-xl font-semibold text-red-50 mb-2">No matching profiles</h2>
-          <p className="subtitle">Try widening your filters or clearing search terms.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-grid">
-          {feedData.map((userData) => (
-            <FeedCard key={userData._id} userInfo={userData} />
-          ))}
-        </div>
-      )}
-    </div>
+            </motion.div>
+
+            <motion.h2 
+              className="text-2xl font-bold text-red-50 mb-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              No matching profiles
+            </motion.h2>
+
+            <motion.p 
+              className="subtitle"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              Try widening your filters or clearing search terms.
+            </motion.p>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="feed"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-grid"
+          >
+            {feedData.map((userData, index) => (
+              <motion.div
+                key={userData._id}
+                variants={itemVariants}
+                custom={index}
+                whileHover={{ 
+                  y: -4,
+                  transition: { type: "spring", stiffness: 400, damping: 15 }
+                }}
+              >
+                <FeedCard userInfo={userData} />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 
